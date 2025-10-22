@@ -1,49 +1,36 @@
+const weatherForm = document.querySelector('form');
+const input = document.querySelector('input');
+const msgOne = document.getElementById('msg-1');
+const msgTwo = document.getElementById('msg-2'); // Fixed: removed '#' prefix
 
-// fetch('http://puzzle.mead.io/puzzle').then((response)=>{
-//     response.json().then((data)=>{
-//         console.log(data)
-//     })
-// })
+weatherForm.addEventListener('submit', (e) => {
+  e.preventDefault();
 
+  const location = input.value;
 
-// fetch('http://localhost:3000/weather?address=!').then((response)=>{
-//     response.json().then((data)=>{
-//         if (data.error){
-//             console.log(data.error)
-//         }
-//         else{
-//             console.log(data.location , data.forecast)
-//         }
+  if (!location) {
+    msgOne.textContent = 'Please enter a location';
+    msgTwo.textContent = '';
+    return;
+  }
 
-//     })
+  msgOne.textContent = 'Loading...';
+  msgTwo.textContent = '';
 
-
-    const weatherForm=document.querySelector('form')
-    const input=document.querySelector('input')
-    const msgOne=document.getElementById('msg-1')
-    const msgTwo=document.getElementById('#msg-2')
-    
-    weatherForm.addEventListener('submit',(e)=>{
-        e.preventDefault()
-        const location=input.value
-        msgOne.textContent='Loading....'
-        msgTwo.textContent=''
-
-     fetch('/weather?address='+location).then((response)=>{
-        response.json().then((data)=>{
-       
-            if (data.error){
-          msgOne.textContent= data.error
-          msgTwo.textContent=''
-        }
-        else{
-            msgOne.textContent=data.location , 
-            msgTwo.textContent=data.forecast
-        }
-
+  fetch(`/weather?address=${encodeURIComponent(location)}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        msgOne.textContent = data.error;
+        msgTwo.textContent = '';
+      } else {
+        msgOne.textContent = data.location;
+        msgTwo.textContent = data.forecast;
+      }
     })
-        
-    })
-
-
-})
+    .catch((error) => {
+      msgOne.textContent = 'Failed to fetch weather data';
+      msgTwo.textContent = '';
+      console.error('Error:', error);
+    });
+});
