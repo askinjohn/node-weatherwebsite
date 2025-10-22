@@ -1,102 +1,64 @@
-const path=require("path")
-const geocode=require("./weather-modules/geocode.js")
-const forecast=require("./weather-modules/forecast.js")
-// importing express
-const express=require("express")
-const hbs=require('hbs')
+const path = require('path');
+const express = require('express');
+const hbs = require('hbs');
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
-// assigning express
-const app=express()
-const port=process.env.PORT || 3000
+// Import configuration
+const config = require('./config/environment');
 
-// define paths for express config
-const pathDirectory=path.join(__dirname,"../public")
-const viewsPath=path.join(__dirname,'../templates/views')
-const partialPath=path.join(__dirname,'../templates/partials')
+// Import routes
+const weatherRoutes = require('./routes/weather.routes');
+const pagesRoutes = require('./routes/pages.routes');
 
-// setup handlebars engine and views location
-app.set('view engine','hbs')
-app.set('views',viewsPath)
-hbs.registerPartials(partialPath)
+// Import middleware
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
-// define static directory to serve
-app.use(express.static(pathDirectory))
+// Initialize express app
+const app = express();
 
-app.get('',(req,res)=>{
-    res.render('index',{
-        title:"Weather App",
-        name:"John"
+// Security middleware
+app.use(helmet());
+app.use(cors());
 
-    })
-})
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/weather', limiter);
 
-app.get('/about',(req,res)=>{
-    res.render('about',
-    {
-        title:"About Me",
-        name:"Askin John Samuel"})
-})
+// Define paths for express config
+const publicDirectoryPath = path.join(__dirname, '../public');
+const viewsPath = path.join(__dirname, '../templates/views');
+const partialsPath = path.join(__dirname, '../templates/partials');
 
-app.get('/help',(req,res)=>{
-    res.render('help',
-    {
-        helptext:"For frequently asked questions visit FAQ section",
-        title:"Help Page",
-        name:"Askin"
-        
-    })
-})
+// Setup handlebars engine and views location
+app.set('view engine', 'hbs');
+app.set('views', viewsPath);
+hbs.registerPartials(partialsPath);
 
+// Setup static directory to serve
+app.use(express.static(publicDirectoryPath));
 
+// Parse JSON bodies
+app.use(express.json());
 
-app.get('/weather',(req,res)=>{
-    if(!req.query.address){
-        return res.send({error:"Enter a address"})
-    }
-    geocode(req.query.address,(error,{location,latitude,longitude}={})=>{
-        if(error){
-           return res.send({error:error})
-        }
-    forecast(latitude,longitude,(error,forecastdata)=>{
-        if(error){
-            return res.send({error:"Enter a Valid Location"})
-        }
-        res.send({
-            location,
-            forecast:forecastdata,
-            address:req.query.address
+// Routes
+app.use('/', pagesRoutes);
+app.use('/weather', weatherRoutes);
 
-        })
-    })
+// 404 handler (must be after all other routes)
+app.use('*', notFoundHandler);
 
-    }
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
-    
-)})
+// Start server
+app.listen(config.port, () => {
+  console.log(`Server is running on port ${config.port}`);
+});
 
-app.get('/help/*',(req,res)=>{
-    res.render('404',{
-        errorMessage:"Help page not found",
-        title:"ERROR",
-        name:"Askin"
-    })
-
-})
-
-app.get('*',(req,res)=>{
-
-    res.render('404',{
-        errorMessage:"Page not found",
-        title:"ERROR",
-        name:"Askin"
-    })
-
-})
-
-
-
-
-
-app.listen(port,()=>{
-    console.log("server is running")
-})
+module.exports = app;

@@ -1,17 +1,34 @@
 {
-    "name":"webserver",
-    "version":"1.0.0",
-    "description":"",
-    "main":"index.js",
-    "scripts":{
-        "start":"node src/app.js"
+    "name": "weather-website",
+    "version": "1.0.0",
+    "description": "A modern weather application using Express, Mapbox, and OpenWeatherMap APIs",
+    "main": "src/app.js",
+    "scripts": {
+        "start": "node src/app.js",
+        "dev": "nodemon src/app.js",
+        "lint": "eslint src/**/*.js public/**/*.js",
+        "lint:fix": "eslint src/**/*.js public/**/*.js --fix",
+        "format": "prettier --write \"src/**/*.js\" \"public/**/*.js\"",
+        "format:check": "prettier --check \"src/**/*.js\" \"public/**/*.js\""
     },
-    "keywords":[],
-    "author":"",
-    "license":"ISC",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
     "dependencies": {
-        "express":"^4.17.1",
-        "hbs":"^4.1.0",
-        "request":"^2.88.0"
+        "axios": "^1.12.2",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^4.17.1",
+        "express-rate-limit": "^8.1.0",
+        "express-validator": "^7.2.1",
+        "hbs": "^4.1.0",
+        "helmet": "^8.1.0"
+    },
+    "devDependencies": {
+        "eslint": "^9.38.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-node": "^11.1.0",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2"
     }
 }
